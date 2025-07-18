@@ -1,8 +1,10 @@
-import { Box, Card, CardContent, CardMedia, Chip, Container, IconButton, Paper, Stack, styled, Typography } from '@u_ui/u-ui';
+import { Card, CardContent, CardMedia, Chip, Container, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Stack, styled, Typography } from '@u_ui/u-ui';
 import CircularProgress from '@u_ui/u-ui/CircularProgress';
 import React, { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search as SearchIcon } from '@mui/icons-material';
+import { BookmarkAddOutlined, Search as SearchIcon } from '@mui/icons-material';
+import saveBook from '../../utils/saveBook';
+import { AuthContext } from '../../context/AuthContext';
 
 const InputWrapper = styled('form')(( {theme }) => ({
     padding: theme.spacing(1.5),
@@ -34,47 +36,101 @@ const ResultList = styled('ul')(({ theme }) => ({
 }));
 
 const BookCard = ({ book, search }) => {
-    return (
-        <Card 
-            component={Link}
-            to={`/book/ol/${book.key?.replace('/works/', '')}?last-search=${encodeURIComponent(search)}`}
-            sx={{
-                width: '100%',
-                textDecoration: 'none',
-                borderRadius: 1,
-                overflow: 'hidden',
-                boxShadow: 3,
-                transition: 'transform 0.2s ease',
-                '&:hover': {
-                    transform: 'scale(1.01)',
-                    boxShadow: 6,
-                },
-            }}
-        >
-            <CardMedia
-                component="img"
-                height="280"
-                image={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
-                alt={book.title}
-                sx={{ objectFit: 'cover' }}
-            />
-            <CardContent sx={{ padding: 2 }}>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom noWrap>
-                    {book.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" noWrap>
-                    {book.author_name?.join(', ') || 'Unknown'}
-                </Typography>
+    const { user } = React.useContext(AuthContext);
+    const [contextMenu, setContextMenu] = React.useState(null);
 
-                {book.language && (
-                    <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
-                        {book.language.slice(0, 3).map((lang, i) => (
-                            <Chip key={i} label={lang} size="small" />
-                        ))}
-                    </Stack>
-                )}
-            </CardContent>
-        </Card>
+    const handleContextMenu = (e) => {
+        e.preventDefault();
+
+        if (!user) return;
+
+        setContextMenu(
+            contextMenu === null
+              ? {
+                  mouseX: e.clientX + 2,
+                  mouseY: e.clientY - 6,
+                }
+              : // repeated contextmenu when it is already open closes it with Chrome 84 on Ubuntu
+                // Other native context menus might behave different.
+                // With this behavior we prevent contextmenu from the backdrop to re-locale existing context menus.
+                null,
+          );
+    }
+
+    const handleClose = () => {
+        setContextMenu(null);
+    }
+
+    const handleSaveBook = async () => {
+        try {
+            await saveBook(book, user, search)
+            handleClose();
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    return (
+        <React.Fragment>
+            <Card 
+                onContextMenu={handleContextMenu}
+                component={Link}
+                to={`/book/ol/${book.key?.replace('/works/', '')}?last-search=${encodeURIComponent(search)}`}
+                sx={{
+                    width: '100%',
+                    textDecoration: 'none',
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    boxShadow: 3,
+                    transition: 'transform 0.2s ease',
+                    '&:hover': {
+                        transform: 'scale(1.01)',
+                        boxShadow: 6,
+                    },
+                }}
+            >
+                <CardMedia
+                    component="img"
+                    height="280"
+                    image={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
+                    alt={book.title}
+                    sx={{ objectFit: 'cover' }}
+                />
+                <CardContent sx={{ padding: 2 }}>
+                    <Typography variant="subtitle1" fontWeight={600} gutterBottom noWrap>
+                        {book.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                        {book.author_name?.join(', ') || 'Unknown'}
+                    </Typography>
+
+                    {book.language && (
+                        <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
+                            {book.language.slice(0, 3).map((lang, i) => (
+                                <Chip key={i} label={lang} size="small" />
+                            ))}
+                        </Stack>
+                    )}
+                </CardContent>
+            </Card>
+            <Menu
+                open={contextMenu !== null}
+                onClose={handleClose}
+                anchorReference="anchorPosition"
+                anchorPosition={
+                contextMenu !== null
+                    ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                    : undefined
+                }
+            >
+                <MenuItem onClick={handleSaveBook}>
+                    <ListItemIcon sx={{ minWidth: 40}}>
+                        <BookmarkAddOutlined />
+                    </ListItemIcon> 
+                    <ListItemText>Save book</ListItemText>
+                </MenuItem>
+            </Menu>
+        </React.Fragment>
     )
 }
 

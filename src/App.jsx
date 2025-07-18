@@ -2,6 +2,7 @@ import React from 'react'
 import { createTheme, CssBaseline, ThemeProvider } from '@u_ui/u-ui';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './pages/Layout';
+import { SnackbarProvider } from 'notistack';
 
 export default function App() {
     const theme = createTheme({
@@ -36,16 +37,18 @@ export default function App() {
                         color: '#000'
                     }
                 }
-            }
+            },
         }
     });
 
     return (
-        <AuthProvider>
-            <ThemeProvider theme={theme}>
-                <CssBaseline />
-                <Layout />
-            </ThemeProvider>
-        </AuthProvider>
+        <SnackbarProvider maxSnack={3} autoHideDuration={3000}>
+            <AuthProvider>
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
+                    <Layout />
+                </ThemeProvider>
+            </AuthProvider>
+        </SnackbarProvider>
     )
 }

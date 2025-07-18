@@ -6,6 +6,8 @@ import Home from "../components/home/Home";
 import App from "../App";
 import Search from "../pages/search/Search";
 import OLBook from "../pages/books/ol/OLBook";
+import AuthGuard from "../pages/auth/AuthGuard";
+import Saves from "../pages/saves/Saves";
 
 const router = createBrowserRouter([
     {
@@ -21,6 +23,10 @@ const router = createBrowserRouter([
                 element: <Search />
             },
             {
+                path: "/saves",
+                element: <Saves />
+            },
+            {
                 path: "/book",
                 children: [
                     {
@@ -31,6 +37,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "/auth",
+                element: <AuthGuard />,
                 children: [
                     {
                         path: "register",

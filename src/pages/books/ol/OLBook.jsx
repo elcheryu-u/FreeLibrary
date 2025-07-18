@@ -1,9 +1,12 @@
-import { ArrowBack, HelpRounded, SendRounded } from '@mui/icons-material';
+import { ArrowBack, BookmarkAddOutlined, HelpRounded, SendRounded } from '@mui/icons-material';
 import { Backdrop, Box, Button, Chip, Collapse, Container, Divider, Fade, Modal, Stack, Typography } from '@u_ui/u-ui';
 import CircularProgress from '@u_ui/u-ui/CircularProgress';
 import React from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import openai from '../../../services/openai';
+import saveBook from '../../../utils/saveBook';
+import { AuthContext } from '../../../context/AuthContext';
+import { enqueueSnackbar } from 'notistack';
 
 const KnowMore = ({ book }) => {
     const [searchParams] = useSearchParams();
@@ -24,7 +27,7 @@ const KnowMore = ({ book }) => {
             const characters = book.subject_people?.slice(0, 3).join(', ');
 
             const prompt = `
-    Resumen breve del libro "${title}" de ${authors}. ${searchParams.get('last-search')}. Máximo 1 párrafo. Temas: ${subjects}. Personajes: ${characters}. ${description.slice(0, 300)}...
+    Resumen breve del libro "${title}" de ${authors}. ${searchParams.get('last-search')}. Máximo 1 párrafo. En ingles. Temas: ${subjects}. Personajes: ${characters}. ${description.slice(0, 300)}...
             `.trim();
 
             const response = await openai.responses.create({
@@ -49,7 +52,7 @@ const KnowMore = ({ book }) => {
                 <Typography variant="body1" sx={{ mt: 3}} gutterBottom>
                     {summary}
                 </Typography>
-                <Button variant='outlined' endIcon={<SendRounded />}>Saber más</Button>
+                {/* <Button variant='outlined' endIcon={<SendRounded />}>Saber más</Button> */}
             </Collapse>
         </Box>
     )
@@ -120,8 +123,37 @@ const BookDescription = ({ book }) => {
     )
 }
 
+const SaveBook = ({ book, user}) => {
+    const [loading, setLoading] = React.useState(false);
+
+    const handleSave = async () => {
+        if (user === null) {
+            alert('Only user with account.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await saveBook(book, user, book.title || '');
+
+            enqueueSnackbar(`You save "${book.title}"!`, { variant: 'success' })
+
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <Button onClick={handleSave} loading={loading} startIcon={<BookmarkAddOutlined />} variant='contained' sx={{ mb: 2}}>Save Book</Button>
+    )
+}
+
 export default function OLBook() {
     const { id } = useParams();
+    const { user } = React.useContext(AuthContext);
+    const [searchParams] = useSearchParams();
     const [book, setBook] = React.useState(null);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
@@ -158,7 +190,7 @@ export default function OLBook() {
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center'}}>
-                <Button to="/search" variant='outlined' LinkComponent={Link}>
+                <Button to={searchParams.get('last-search') ? `/search?query=${searchParams.get('last-search')}` : '/search'} variant='outlined' LinkComponent={Link}>
                     <ArrowBack /> Back to search
                 </Button>
                 <Typography textTransform="uppercase" variant='h5' component='h1' sx={{ flex: 1, textAlign: 'right'}}>{book.title}</Typography>
@@ -175,7 +207,8 @@ export default function OLBook() {
                     />
                 </Box>
 
-                <Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column'}}>
+                    <SaveBook book={book} user={user} />
                     <BookDescription book={book} />
 
                     {book.subjects?.length > 0 && (

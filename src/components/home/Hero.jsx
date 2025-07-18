@@ -1,12 +1,17 @@
-import { Search } from '@mui/icons-material';
-import { Box, Button, Container, Paper, styled, Typography } from '@u_ui/u-ui'
+import { LockOpenRounded, Search, TravelExploreRounded } from '@mui/icons-material';
+import { Box, Button, Container, styled, Typography } from '@u_ui/u-ui'
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 
 const InputWrapper = styled('form')(({ theme }) => ({
-    padding: theme.spacing(1),
+    padding: theme.spacing(0),
+    flexDirection: 'column',
+    [theme.breakpoints.up('md')]: {
+        padding: theme.spacing(1),
+        flexDirection: 'row'
+    },
     border: `1px solid ${theme.palette.divider}`,
-    fontSize: '1.75rem',
     background: theme.palette.background.paper,
     display: 'flex',
     width: '100%',
@@ -22,10 +27,13 @@ const InputWrapper = styled('form')(({ theme }) => ({
 const Input = styled('input')(({ theme }) => ({
     padding: theme.spacing(1.5),
     outline: 'none',
-    fontSize: '1.75rem',
+    fontSize: '1.25rem',
     background: 'transparent',
     border: 'none',
     flex: 1,
+    [theme.breakpoints.up('sm')]: {
+        fontSize: '1.75rem',
+    }
 }))
 
 const SearchInput = ({ setBooks }) => {
@@ -79,6 +87,7 @@ const SearchInput = ({ setBooks }) => {
 }
 
 export default function Hero() {
+    const { user } = React.useContext(AuthContext)
     const [books, setBooks] = React.useState([]);
 
     return (
@@ -108,20 +117,29 @@ export default function Hero() {
                     <Typography
                         variant='h2'
                         component='h1'
-                        sx={{
+                        sx={(theme) => ({
                             fontWeight: 700,
-                            color: '#FFF'
-                        }}
+                            color: '#FFF',
+                            [theme.breakpoints.down('sm')]: {
+                                fontSize: '2.5rem'
+                            }
+                        })}
                     >
-                        Biblioteca Digital <br />
-                        Comunitaria
+                        Community Digital <br />
+                        Library
                     </Typography>
                     <Typography color='#FFF' component='p' variant='h5'>
-                        Conecta, comparte y descubre libros con una comunidad global. Gestiona tu biblioteca personal, presta libros y recibe sugerencias personalizadas con IA.
+                    Connect, share, and discover books with a global community. Manage your personal library.
                     </Typography>
-                    <Button LinkComponent={Link} to="/auth/login" sx={{ mt: 3}} variant='contained' color='neutral' size="large">
-                        Crear Cuenta
-                    </Button>
+                    {user ?
+                        <Button endIcon={<TravelExploreRounded />} LinkComponent={Link} to="/search" sx={{ mt: 3}} variant='contained' color='neutral' size="large">
+                            Browse books
+                        </Button>
+                    :
+                        <Button endIcon={<LockOpenRounded />} LinkComponent={Link} to="/auth/register" sx={{ mt: 3}} variant='contained' color='neutral' size="large">
+                            Create Account
+                        </Button>
+                    }
                 </Box>
             </Container>
             <Container
