@@ -33,11 +33,11 @@ const ResultList = styled('ul')(({ theme }) => ({
     padding: 0
 }));
 
-const BookCard = ({ book }) => {
+const BookCard = ({ book, search }) => {
     return (
         <Card 
             component={Link}
-            to={`/book/ol/${book.key?.replace('/works/', '')}`}
+            to={`/book/ol/${book.key?.replace('/works/', '')}?last-search=${encodeURIComponent(search)}`}
             sx={{
                 width: '100%',
                 textDecoration: 'none',
@@ -162,8 +162,8 @@ export default function Search() {
                 <ResultList>
                     {books.map((book) => {
                         if (!book.cover_i) return;
-                        
-                        return <BookCard key={book.key} book={book} />
+
+                        return <BookCard key={book.key} book={book} search={searchParams.get('query')} />
                     })}
                 </ResultList>
             )}

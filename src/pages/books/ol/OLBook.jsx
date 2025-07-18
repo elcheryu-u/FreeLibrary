@@ -1,8 +1,124 @@
-import { ArrowBack } from '@mui/icons-material';
-import { Box, Button, Chip, Container, Divider, Stack, Typography } from '@u_ui/u-ui';
+import { ArrowBack, HelpRounded, SendRounded } from '@mui/icons-material';
+import { Backdrop, Box, Button, Chip, Collapse, Container, Divider, Fade, Modal, Stack, Typography } from '@u_ui/u-ui';
 import CircularProgress from '@u_ui/u-ui/CircularProgress';
 import React from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import openai from '../../../services/openai';
+
+const KnowMore = ({ book }) => {
+    const [searchParams] = useSearchParams();
+    const [summary, setSummary] = React.useState('');
+    const [loading, setLoading] = React.useState(false);
+
+    const handleKnowMore = async () => {
+        try {
+            setLoading(true);
+            setSummary('');
+
+            const title = book.title || 'Título desconocido';
+            const authors = book.author_name?.join(', ') || 'Autor desconocido';
+            const description = typeof book.description === 'string'
+                ? book.description
+                : book.description?.value || '';
+            const subjects = book.subjects?.slice(0, 3).join(', ');
+            const characters = book.subject_people?.slice(0, 3).join(', ');
+
+            const prompt = `
+    Resumen breve del libro "${title}" de ${authors}. ${searchParams.get('last-search')}. Máximo 1 párrafo. Temas: ${subjects}. Personajes: ${characters}. ${description.slice(0, 300)}...
+            `.trim();
+
+            const response = await openai.responses.create({
+                model: 'o4-mini',
+                input: prompt
+            });
+
+            setSummary(response.output_text)
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <Box>
+            <Button onClick={handleKnowMore} loading={loading} loadingPosition='start' variant='contained' endIcon={<HelpRounded />}>
+                Know More
+            </Button>
+            <Collapse in={summary.length > 0}>
+                <Typography variant="body1" sx={{ mt: 3}} gutterBottom>
+                    {summary}
+                </Typography>
+                <Button variant='outlined' endIcon={<SendRounded />}>Saber más</Button>
+            </Collapse>
+        </Box>
+    )
+}
+
+const BookDescription = ({ book }) => {
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
+    const style = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        maxWidth: 500,
+        width: '100%',
+        bgcolor: 'background.paper',
+        border: '2px solid background',
+        boxShadow: 24,
+        borderRadius: 1,
+        p: 4,
+        maxHeight: '80vh',
+        overflowY: 'auto'
+    };
+
+    return (
+        <React.Fragment>
+            <Typography onClick={handleOpen} component={Button} variant="body1" textTransform='initial' textAlign='left' sx={{ p: 0 }}>
+                {(() => {
+                    const desc = typeof book.description === 'string'
+                        ? book.description
+                        : book.description?.value;
+
+                    if (!desc) return 'No description available.';
+
+                    return desc.length > 300 ? `${desc.slice(0, 200)}...` : desc;
+                })()}
+            </Typography>
+            <Modal
+                open={open}
+                onClose={handleClose}
+                closeAfterTransition
+                slots={{ backdrop: Backdrop }}
+                slotProps={{
+                    backdrop: {
+                        timeout: 500
+                    },
+                }}
+            >
+                <Fade in={open}>
+                    <Box sx={style}>
+                        <Typography variant="body1">
+                            {(() => {
+                                const desc = typeof book.description === 'string'
+                                    ? book.description
+                                    : book.description?.value;
+
+                                if (!desc) return 'No description available.';
+
+                                return desc;
+                            })()}
+                        </Typography>
+                    </Box>
+                </Fade>
+            </Modal>
+        </React.Fragment>
+    )
+}
 
 export default function OLBook() {
     const { id } = useParams();
@@ -18,6 +134,7 @@ export default function OLBook() {
                 const data = await response.json();
                 setBook(data);
             } catch (err) {
+                setError(err);
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -54,18 +171,12 @@ export default function OLBook() {
                     <img 
                         src={imageUrl}
                         alt={book.title}
-                        style={{ width: 250, borderRadius: 12 }}
+                        style={{ width: 250, borderRadius: 6 }}
                     />
                 </Box>
 
                 <Box>
-                    {book.description && (
-                        <Typography variant='body1' sx={{ mb: 2}}>
-                            {typeof book.description === 'string'
-                                ? book.description
-                                : book.description?.value}
-                        </Typography>
-                    )}
+                    <BookDescription book={book} />
 
                     {book.subjects?.length > 0 && (
                         <Box sx={{ mt: 2 }}>
@@ -81,6 +192,10 @@ export default function OLBook() {
                     )}
                 </Box>
             </Box>
+
+            <Divider sx={{ marginBlock: 2}} />
+
+            <KnowMore book={book} />
         </Container>
     )
 }

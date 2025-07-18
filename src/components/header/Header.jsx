@@ -4,7 +4,7 @@ import React from 'react'
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 
-const pages = ['Productos', 'Precios', 'Blog'];
+const pages = ['OpenLibrary', 'Guardados'];
 const settings = ['Perfil', 'Cuenta', 'Dashboard', 'Cerrar sesión'];
 
 export default function Header() {
@@ -117,7 +117,7 @@ export default function Header() {
                                 onClick={handleCloseNavMenu}
                                 sx={{ my: 2, display: 'block' }}
                             >
-                                {page}asd
+                                {page}
                             </Button>
                         ))}
                     </Box>
