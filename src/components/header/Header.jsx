@@ -29,7 +29,11 @@ export default function Header() {
     };
 
     return (
-        <AppBar color='contrast' position="static">
+        <AppBar 
+            position="fixed"
+            color='neutral'
+            elevation={0}
+        >
             <Container maxWidth="xl">
                 <Toolbar disableGutters>
                     <AdbRounded sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
@@ -53,12 +57,12 @@ export default function Header() {
 
                     <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
                         <IconButton
-                        size="large"
-                        aria-label="cuenta del usuario actual"
-                        aria-controls="menu-appbar"
-                        aria-haspopup="true"
-                        onClick={handleOpenNavMenu}
-                        color="inherit"
+                            size="large"
+                            aria-label="cuenta del usuario actual"
+                            aria-controls="menu-appbar"
+                            aria-haspopup="true"
+                            onClick={handleOpenNavMenu}
+                            color="inherit"
                         >
                             <MenuRounded />
                         </IconButton>
@@ -79,8 +83,8 @@ export default function Header() {
                         sx={{ display: { xs: 'block', md: 'none' } }}
                         >
                         {pages.map((page) => (
-                            <MenuItem key={page} onClick={handleCloseNavMenu}>
-                            <Typography sx={{ textAlign: 'center' }}>{page}</Typography>
+                            <MenuItem color='neutral' key={page} onClick={handleCloseNavMenu}>
+                                <Typography sx={{ textAlign: 'center' }}>{page}</Typography>
                             </MenuItem>
                         ))}
                         </Menu>
@@ -106,13 +110,15 @@ export default function Header() {
                     </Typography>
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                         {pages.map((page) => (
-                        <Button
-                            key={page}
-                            onClick={handleCloseNavMenu}
-                            sx={{ my: 2, color: 'white', display: 'block' }}
-                        >
-                            {page}
-                        </Button>
+                            <Button
+                                color='neutral'
+                                variant='contained'
+                                key={page}
+                                onClick={handleCloseNavMenu}
+                                sx={{ my: 2, display: 'block' }}
+                            >
+                                {page}asd
+                            </Button>
                         ))}
                     </Box>
                     <Box sx={{ flexGrow: 0 }}>

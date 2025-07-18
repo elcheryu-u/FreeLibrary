@@ -1,32 +1,80 @@
-import { Box, Button, Paper, Typography } from '@u_ui/u-ui'
+import { Search } from '@mui/icons-material';
+import { Box, Button, Container, Paper, styled, Typography } from '@u_ui/u-ui'
 import React from 'react'
-import OpenAI from 'openai';
+import { Link, useNavigate } from 'react-router-dom';
 
+const InputWrapper = styled('form')(({ theme }) => ({
+    padding: theme.spacing(1),
+    border: `1px solid ${theme.palette.divider}`,
+    fontSize: '1.75rem',
+    background: theme.palette.background.paper,
+    display: 'flex',
+    width: '100%',
+    transition: '.2s ease all',
+    outline: '3px solid transparent',
+    borderRadius: 2,
+    ':focus-within': {
+        borderColor: '#000',
+        outlineColor: '#FFF'
+    }
+}))
+
+const Input = styled('input')(({ theme }) => ({
+    padding: theme.spacing(1.5),
+    outline: 'none',
+    fontSize: '1.75rem',
+    background: 'transparent',
+    border: 'none',
+    flex: 1,
+}))
 
 const SearchInput = ({ setBooks }) => {
     const [value, setValue] = React.useState('');
+    const disabled = !Boolean(value.trim().length > 0);
 
-    async function fetchBooks() {
-        const apiUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(value)}`;
+    const navigate = useNavigate();
 
-        try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) throw new Error("Failed to fetch data");
-            
-            const data = await response.json();
-
-            setBooks(data.docs);
-        } catch (error) {
-            resultsContainer.innerHTML = `<p>Error: ${error.message}</p>`;
+    const handlSearch = () => {
+        if (value.trim().length > 0) {
+            navigate(`/search?query=${encodeURIComponent(value.trim())}`);
         }
-    }
+    };
 
     return (
-        <div>
-            <input value={value} onChange={(e) => setValue(e.target.value)} placeholder='Busca otro...' />
-            {value}
-            <Button onClick={fetchBooks} disabled={value < 1} variant='contained'>Buscar</Button>
-        </div>
+        <Container 
+            sx={{
+                display: 'flex',
+                gap: 1,
+                position: 'relative',
+                marginTop: 3,
+                marginBottom: 5
+            }}
+            maxWidth="lg"
+        >
+            <InputWrapper
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!disabled) {
+                        handlSearch();
+                    }
+                }}
+            >
+                <Input 
+                    name="search" 
+                    value={value} 
+                    onChange={(e) => setValue(e.target.value)} 
+                    placeholder='Search books by title or author...' 
+                />
+                <Button 
+                    disabled={disabled} 
+                    variant='contained'
+                    type='submit'
+                >
+                    <Search />
+                    Search
+                </Button>
+            </InputWrapper>
+        </Container>
     )
 }
 
@@ -34,42 +82,56 @@ export default function Hero() {
     const [books, setBooks] = React.useState([]);
 
     return (
-        <div>
-            <Typography>
-                Biblioteca Digital
-                Comunitaria
-            </Typography>
-            <Typography>
-                Conecta, comparte y descubre libros con una comunidad global. Gestiona tu biblioteca personal, presta libros y recibe sugerencias personalizadas con IA.
-            </Typography>
-            <Box>
-                <SearchInput setBooks={setBooks} />
-            </Box>
-            <Box
-                sx={(theme) => ({
+        <Box
+            sx={{
+                p: 3,
+                background: 'linear-gradient(135deg,rgba(107, 92, 255, 1) 0%,rgba(234, 162, 252, 1) 100%)',
+                minHeight: '60dvh',
+                pb: 10
+            }}
+        >
+            <SearchInput setBooks={setBooks} />
+            <Container 
+                sx={{
                     display: 'flex',
-                    flexFlow: 'row wrap',
-                    gap: theme.spacing(4)
-                })}
+                    flexDirection: 'column',
+                    gap: 1,
+                    alignItems: 'flex-start'
+                }}
+                maxWidth="lg"
             >
-                {books.map((book) => {
-                    if (!book.cover_i) return;
-
-                    return (
-                        <Paper 
-                            key={book.key}
-                            elevation={4}
-                            sx={(theme) => ({
-                                padding: '1rem',
-                                position: 'relative'
-                            })}
-                        >
-                            <img src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`} />
-                            <p>{book.title}</p>
-                        </Paper>
-                    )
-                })}
-            </Box>
-        </div>
+                <Box
+                    sx={{
+                        maxWidth: 700
+                    }}
+                >
+                    <Typography
+                        variant='h2'
+                        component='h1'
+                        sx={{
+                            fontWeight: 700,
+                            color: '#FFF'
+                        }}
+                    >
+                        Biblioteca Digital <br />
+                        Comunitaria
+                    </Typography>
+                    <Typography color='#FFF' component='p' variant='h5'>
+                        Conecta, comparte y descubre libros con una comunidad global. Gestiona tu biblioteca personal, presta libros y recibe sugerencias personalizadas con IA.
+                    </Typography>
+                    <Button LinkComponent={Link} to="/auth/login" sx={{ mt: 3}} variant='contained' color='neutral' size="large">
+                        Crear Cuenta
+                    </Button>
+                </Box>
+            </Container>
+            <Container
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3
+                }}
+            >
+            </Container>
+        </Box>
     )
 }

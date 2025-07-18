@@ -4,6 +4,8 @@ import Register from "../pages/auth/Register";
 import Login from "../pages/auth/Login";
 import Home from "../components/home/Home";
 import App from "../App";
+import Search from "../pages/search/Search";
+import OLBook from "../pages/books/ol/OLBook";
 
 const router = createBrowserRouter([
     {
@@ -13,6 +15,19 @@ const router = createBrowserRouter([
             {   
                 index: true,
                 element: <Home />
+            },
+            {
+                path: "/search",
+                element: <Search />
+            },
+            {
+                path: "/book",
+                children: [
+                    {
+                        path: "ol/:id",
+                        element: <OLBook />
+                    }
+                ]
             },
             {
                 path: "/auth",
